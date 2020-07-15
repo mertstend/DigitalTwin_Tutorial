@@ -70,9 +70,33 @@ def generate_measurement_data():
 
 
 
-
 def get_measurement_data(x0, T):
 
     x = odeint(ode_dyn_sys, x0, T)
 
     return x
+
+
+def split_data(X_in, X_out, XM, split_ratio):
+    
+    # b) reshape into special 3D arrays that are required by Keras LSTM layers
+    X_in = np.dstack([X_in[:, :, 0], X_in[:, :, 1]])
+    X_out = np.dstack([X_out[:, :, 0], X_out[:, :, 1]])
+
+    X_in_train = X_in[:int(len(X_in) * split_ratio), :, :]
+    X_in_test = X_in[int(len(X_in) * split_ratio):, :, :]
+
+    X_out_train = X_out[:int(len(X_out) * split_ratio), :, :]
+    X_out_test = X_out[int(len(X_out) * split_ratio):, :, :]
+    
+    XM_train = XM[:int(len(X_in) * split_ratio), :, :]
+    XM_test = XM[int(len(X_out) * split_ratio):, :, :]
+
+    return X_in_train, X_in_test, X_out_train, X_out_test, XM_train, XM_test
+
+def get_mae(XS, XM):
+    
+    diff = np.abs(XM-XS)
+    mae = np.sum(diff)/(diff.size)
+    
+    return mae
